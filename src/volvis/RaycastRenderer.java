@@ -91,6 +91,41 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
 
         return volume.getVoxel(x, y, z);
     }
+    
+    short getInterpolatedVoxel(double[] coord) {
+        if (coord[0] < 0 || coord[0] > volume.getDimX() || coord[1] < 0 || coord[1] > volume.getDimY()
+                || coord[2] < 0 || coord[2] > volume.getDimZ()) {
+            return 0;
+        }
+        
+        double x = coord[0];
+        double y = coord[1];
+        double z = coord[2];       
+        
+        short Sx0 = volume.getVoxel((int)Math.floor(x), (int)Math.floor(y), (int)Math.floor(z));
+        short Sx1 = volume.getVoxel((int)Math.ceil(x), (int)Math.floor(y), (int)Math.floor(z));
+        short Sx2 = volume.getVoxel((int)Math.floor(x), (int)Math.ceil(y), (int)Math.floor(z));
+        short Sx3 = volume.getVoxel((int)Math.ceil(x), (int)Math.ceil(y), (int)Math.floor(z));       
+        short Sx4 = volume.getVoxel((int)Math.floor(x), (int)Math.floor(y), (int)Math.ceil(z));
+        short Sx5 = volume.getVoxel((int)Math.ceil(x), (int)Math.floor(y), (int)Math.ceil(z));
+        short Sx6 = volume.getVoxel((int)Math.floor(x), (int)Math.ceil(y), (int)Math.ceil(z));
+        short Sx7 = volume.getVoxel((int)Math.ceil(x), (int)Math.ceil(y), (int)Math.ceil(z));
+        
+        double alpha = (x - Math.floor(x)) / (Math.ceil(x) - Math.floor(x)); // (x - x0) / (x1 - x0)
+        double beta = (y - Math.floor(y)) / (Math.ceil(y) - Math.floor(y));
+        double gamma = (z - Math.floor(z)) / (Math.ceil(z) - Math.floor(z));
+        
+        double Sx = (1 - alpha) * (1 - beta) * (1 - gamma) * Sx0;
+        Sx += alpha * (1 - beta) * (1 - gamma) * Sx1;
+        Sx += (1 - alpha) * beta * (1 - gamma) * Sx2;
+        Sx += alpha * beta * (1 - gamma) * Sx3;
+        Sx += (1 - alpha) * (1 - beta) * gamma * Sx4;
+        Sx += alpha * (1 - beta) * gamma * Sx5;
+        Sx += (1 - alpha) * beta * gamma * Sx6;
+        Sx += alpha * beta * gamma * Sx7;
+        
+        return (short) Sx;
+    }
 
     void slicer(double[] viewMatrix) {
 

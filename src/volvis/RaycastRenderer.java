@@ -233,7 +233,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                     if (val > maxVal){
                         maxVal = val;
                     }
-                //this :)
+                //this sucks
                 }
 
                 // Map the intensity to a grey value by linear scaling

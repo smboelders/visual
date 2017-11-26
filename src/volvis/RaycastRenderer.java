@@ -30,6 +30,10 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     TransferFunction tFunc;
     TransferFunctionEditor tfEditor;
     TransferFunction2DEditor tfEditor2D;
+    
+    public void setRenderType(String renderType) {
+        this.renderType = renderType;
+    }
 
     public RaycastRenderer() {
         panel = new RaycastRendererPanel(this);
@@ -329,7 +333,18 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         gl.glGetDoublev(GL2.GL_MODELVIEW_MATRIX, viewMatrix, 0);
 
         long startTime = System.currentTimeMillis();
-        mip(viewMatrix);
+        if (renderType == "mip"){
+            mip(viewMatrix);
+        } else if (renderType == "slicer"){
+            slicer(viewMatrix);
+        } else if (renderType == "composit") {
+            
+        } else if (renderType == "tf2d") {
+            
+        } else {
+            
+        }
+
 
         long endTime = System.currentTimeMillis();
         double runningTime = (endTime - startTime);

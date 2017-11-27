@@ -23,6 +23,7 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
     public RaycastRendererPanel(RaycastRenderer renderer) {
         initComponents();
         this.renderer = renderer;
+        this.renderer.setRenderType("slicer");
     }
 
     public void setSpeedLabel(String text) {
@@ -141,7 +142,7 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_slicerButtonActionPerformed
 
     private void compositingButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_compositingButtonActionPerformed
-        renderer.setRenderType("composit");
+        renderer.setRenderType("composite");
     }//GEN-LAST:event_compositingButtonActionPerformed
 
     private void tf2dButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tf2dButtonActionPerformed

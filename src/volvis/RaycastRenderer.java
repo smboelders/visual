@@ -33,6 +33,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     
     public void setRenderType(String renderType) {
         this.renderType = renderType;
+        this.changed();
     }
 
     public RaycastRenderer() {
@@ -84,8 +85,8 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
 
     short getVoxel(double[] coord) {
 
-        if (coord[0] < 0 || coord[0] > volume.getDimX() || coord[1] < 0 || coord[1] > volume.getDimY()
-                || coord[2] < 0 || coord[2] > volume.getDimZ()) {
+        if (coord[0] < 0 || coord[0] >= volume.getDimX() || coord[1] < 0 || coord[1] >= volume.getDimY()
+                || coord[2] < 0 || coord[2] >= volume.getDimZ()) {
             return 0;
         }
 
@@ -97,8 +98,8 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     }
     
     short getInterpolatedVoxel(double[] coord) {
-        if (coord[0] < 0 || coord[0] > volume.getDimX() || coord[1] < 0 || coord[1] > volume.getDimY()
-                || coord[2] < 0 || coord[2] > volume.getDimZ()) {
+        if (coord[0] < 0 || coord[0] >= volume.getDimX() || coord[1] < 0 || coord[1] >= volume.getDimY()
+                || coord[2] < 0 || coord[2] >= volume.getDimZ()) {
             return 0;
         }
         
@@ -413,21 +414,17 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
 
         long startTime = System.currentTimeMillis();
 
-        if (renderType == "mip"){
+        if (renderType.equals("mip")){
             mip(viewMatrix);
-        } else if (renderType == "slicer"){
+        } else if (renderType.equals("slicer")){
             slicer(viewMatrix);
-        } else if (renderType == "composit") {
+        } else if (renderType.equals("composite")) {
             composite(viewMatrix);
-        } else if (renderType == "tf2d") {
+        } else if (renderType.equals("tf2d")) {
             
         } else {
             
         }
-
-
-        
-
 
         long endTime = System.currentTimeMillis();
         double runningTime = (endTime - startTime);

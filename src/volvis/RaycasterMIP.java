@@ -1,13 +1,7 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package volvis;
 
 /**
- *
- * @author s143243
+ * @author Stan Roelofs
  */
 public class RaycasterMIP extends Raycaster {
     
@@ -42,14 +36,7 @@ public class RaycasterMIP extends Raycaster {
                 // Alternatively, apply the transfer function to obtain a color
                 voxelColor = tFunc.getColor(maxVal);
                 
-
-                // BufferedImage expects a pixel color packed as ARGB in an int
-                int c_alpha = voxelColor.a <= 1.0 ? (int) Math.floor(voxelColor.a * 255) : 255;
-                int c_red = voxelColor.r <= 1.0 ? (int) Math.floor(voxelColor.r * 255) : 255;
-                int c_green = voxelColor.g <= 1.0 ? (int) Math.floor(voxelColor.g * 255) : 255;
-                int c_blue = voxelColor.b <= 1.0 ? (int) Math.floor(voxelColor.b * 255) : 255;
-                int pixelColor = (c_alpha << 24) | (c_red << 16) | (c_green << 8) | c_blue;
-                image.setRGB(i, j, pixelColor);
+                super.setPixel(i, j, voxelColor);
             }
         }
     }

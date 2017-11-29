@@ -1,13 +1,7 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package volvis;
 
-/**
- *
- * @author s143243
+/** 
+ * @author Stan Roelofs
  */
 public class RaycasterComposite extends Raycaster {
     
@@ -43,13 +37,7 @@ public class RaycasterComposite extends Raycaster {
                     compositeColor.b = voxelColor.b * voxelColor.b + (1 - voxelColor.a) * temp.b;
                 }                
 
-                // BufferedImage expects a pixel color packed as ARGB in an int
-                int c_alpha = compositeColor.a <= 1.0 ? (int) Math.floor(compositeColor.a * 255) : 255;
-                int c_red = compositeColor.r <= 1.0 ? (int) Math.floor(compositeColor.r * 255) : 255;
-                int c_green = compositeColor.g <= 1.0 ? (int) Math.floor(compositeColor.g * 255) : 255;
-                int c_blue = compositeColor.b <= 1.0 ? (int) Math.floor(compositeColor.b * 255) : 255;
-                int pixelColor = (c_alpha << 24) | (c_red << 16) | (c_green << 8) | c_blue;
-                image.setRGB(i, j, pixelColor);
+                super.setPixel(i, j,compositeColor);
             }
         }
     }

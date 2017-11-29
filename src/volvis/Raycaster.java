@@ -1,17 +1,11 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package volvis;
 
 import java.awt.image.BufferedImage;
 import util.VectorMath;
 import volume.Volume;
 
-/**
- *
- * @author s143243
+/** *
+ * @author Stan Roelofs
  */
 public abstract class Raycaster {
     
@@ -127,4 +121,14 @@ public abstract class Raycaster {
     }
     
     protected abstract void method();
+    
+    protected void setPixel(int i, int j, TFColor color) {
+        // BufferedImage expects a pixel color packed as ARGB in an int
+        int c_alpha = color.a <= 1.0 ? (int) Math.floor(color.a * 255) : 255;
+        int c_red = color.r <= 1.0 ? (int) Math.floor(color.r * 255) : 255;
+        int c_green = color.g <= 1.0 ? (int) Math.floor(color.g * 255) : 255;
+        int c_blue = color.b <= 1.0 ? (int) Math.floor(color.b * 255) : 255;
+        int pixelColor = (c_alpha << 24) | (c_red << 16) | (c_green << 8) | c_blue;
+        image.setRGB(i, j, pixelColor);
+    }
 }

@@ -19,7 +19,7 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
     RaycastRenderer renderer;
     TransferFunctionEditor tfEditor = null;
     TransferFunction2DEditor tfEditor2D = null;
-    private int delta = 10;
+    private int delta = 5;
     private RaycasterSlicer slicerInstance = new RaycasterSlicer(delta);
     private RaycasterComposite compositeInstance = new RaycasterComposite(delta);
     private RaycasterMIP MIPInstance = new RaycasterMIP(delta);

@@ -1,7 +1,9 @@
 package volvis;
 
+import gui.TransferFunction2DEditor;
 import java.awt.image.BufferedImage;
 import util.VectorMath;
+import volume.GradientVolume;
 import volume.Volume;
 
 /** *
@@ -21,6 +23,8 @@ public abstract class Raycaster {
     protected double[] volumeCenter;
     protected Volume volume;
     protected TransferFunction tFunc;
+    protected TransferFunction2DEditor tfEditor2D;
+    protected GradientVolume gradients;
         
     public Raycaster(int delta) {
         this.delta = delta;
@@ -85,10 +89,12 @@ public abstract class Raycaster {
         return (short) Sx;
     }
     
-    public void render(double[] viewMatrix, BufferedImage image, Volume volume, TransferFunction tFunc) {
+    public void render(double[] viewMatrix, BufferedImage image, Volume volume, GradientVolume gradients, TransferFunction tFunc, TransferFunction2DEditor tfEditor2D) {
         this.image = image;
         this.volume = volume;
         this.tFunc = tFunc;
+        this.tfEditor2D = tfEditor2D;
+        this.gradients = gradients;
         
         // clear image
         for (int j = 0; j < image.getHeight(); j++) {

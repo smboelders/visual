@@ -14,6 +14,7 @@ public class RaycasterComposite extends Raycaster {
         for (int j = 0; j < image.getHeight(); j++) {
             for (int i = 0; i < image.getWidth(); i++) {
                 TFColor compositeColor = new TFColor(0,0,0,1);
+                
                 for (int k = -imageCenter / delta; k < imageCenter / delta; k++) {
                     pixelCoord[0] = uVec[0] * (i - imageCenter) + vVec[0] * (j - imageCenter)
                             + volumeCenter[0] + k * delta * viewVec[0];
@@ -33,8 +34,8 @@ public class RaycasterComposite extends Raycaster {
                     voxelColor = tFunc.getColor(val);    
                     TFColor temp = new TFColor(compositeColor.r, compositeColor.g, compositeColor.b, compositeColor.a);
                     compositeColor.r = voxelColor.r * voxelColor.a + (1 - voxelColor.a) * temp.r;
-                    compositeColor.g = voxelColor.g * voxelColor.g + (1 - voxelColor.a) * temp.g;
-                    compositeColor.b = voxelColor.b * voxelColor.b + (1 - voxelColor.a) * temp.b;
+                    compositeColor.g = voxelColor.g * voxelColor.a + (1 - voxelColor.a) * temp.g;
+                    compositeColor.b = voxelColor.b * voxelColor.a + (1 - voxelColor.a) * temp.b;
                 }                
 
                 super.setPixel(i, j,compositeColor);

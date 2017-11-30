@@ -7,6 +7,7 @@ package gui;
 import javax.swing.JOptionPane;
 import volvis.RaycastRenderer;
 import volvis.RaycasterComposite;
+import volvis.RaycasterGradient;
 import volvis.RaycasterMIP;
 import volvis.RaycasterSlicer;
 
@@ -19,10 +20,11 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
     RaycastRenderer renderer;
     TransferFunctionEditor tfEditor = null;
     TransferFunction2DEditor tfEditor2D = null;
-    private int delta = 5;
+    private int delta = 1;
     private RaycasterSlicer slicerInstance = new RaycasterSlicer(delta);
     private RaycasterComposite compositeInstance = new RaycasterComposite(delta);
     private RaycasterMIP MIPInstance = new RaycasterMIP(delta);
+    private RaycasterGradient gradientInstance = new RaycasterGradient(delta);
     
     /**
      * Creates new form RaycastRendererPanel
@@ -153,7 +155,7 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_compositingButtonActionPerformed
 
     private void tf2dButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tf2dButtonActionPerformed
-        //renderer.setRenderType("tf2d");
+        renderer.setRenderType(this.gradientInstance);
     }//GEN-LAST:event_tf2dButtonActionPerformed
 
     private void shadingCheckboxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_shadingCheckboxActionPerformed

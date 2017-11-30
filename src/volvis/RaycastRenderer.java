@@ -154,7 +154,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
 
         long startTime = System.currentTimeMillis();
 
-        this.raycaster.render(viewMatrix, image, volume, tFunc);
+        this.raycaster.render(viewMatrix, image, volume, gradients, tFunc, tfEditor2D);
         
         long endTime = System.currentTimeMillis();
         double runningTime = (endTime - startTime);

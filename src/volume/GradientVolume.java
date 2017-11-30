@@ -58,9 +58,9 @@ public class GradientVolume {
         
         //Create a VoxelGradient object for every datapoint containing the 
         //gradient vector
-        for (int x = 1; x <= dimX; x++){
-          for (int y = 1; y <= dimY; x++){
-            for (int z = 1; z <= dimZ; x++){
+        for (int x = 1; x < dimX - 1; x++){
+          for (int y = 1; y < dimY - 1; y++){
+            for (int z = 1; z < dimZ - 1; z++){
                 
                 //Calculate the gradient vector according to the paper
                 float gx = (float) (0.5*(volume.getVoxel(x+1,y,z)-volume.getVoxel(x-1,y,z)));

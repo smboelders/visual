@@ -60,6 +60,8 @@ public class RaycasterGradient extends Raycaster {
         double baseIntensity = this.tfEditor2D.triangleWidget.baseIntensity;
         double radius = this.tfEditor2D.triangleWidget.radius;
         TFColor color = this.tfEditor2D.triangleWidget.color;    
+        double lowerMag = this.tfEditor2D.triangleWidget.lowerMag;
+        double upperMag = this.tfEditor2D.triangleWidget.upperMag;
         
         for (int j = 0; j < image.getHeight(); j++) {
             for (int i = 0; i < image.getWidth(); i++) {
@@ -81,7 +83,7 @@ public class RaycasterGradient extends Raycaster {
                     // Calculate opacity using the third function in Levoy's paper
                     if (mag == 0 && val == baseIntensity) {
                         voxelColor.a = 1;
-                    } else if (mag > 0 && (val - radius * Math.abs(mag) <= baseIntensity && baseIntensity <= val + radius * Math.abs(mag))) {
+                    } else if (mag >= lowerMag && mag <= upperMag && mag > 0 && (val - radius * Math.abs(mag) <= baseIntensity && baseIntensity <= val + radius * Math.abs(mag))) {
                         double temp = (baseIntensity - val) / Math.abs(mag);                     
                         voxelColor.a = 1 - ((1/radius) * Math.abs(temp));
                     } else {

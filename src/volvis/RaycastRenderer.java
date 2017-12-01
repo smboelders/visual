@@ -23,6 +23,7 @@ import volume.Volume;
 public class RaycastRenderer extends Renderer implements TFChangeListener {
 
     private Raycaster raycaster;
+    private boolean phong = false;
     private Volume volume = null;
     private GradientVolume gradients = null;
     RaycastRendererPanel panel;
@@ -32,6 +33,11 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     
     public void setRenderType(Raycaster raycaster) {
         this.raycaster = raycaster;
+        this.changed();
+    }
+    
+    public void setPhong(boolean bool) {
+        this.phong = bool;
         this.changed();
     }
 
@@ -154,7 +160,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
 
         long startTime = System.currentTimeMillis();
 
-        this.raycaster.render(viewMatrix, image, volume, gradients, tFunc, tfEditor2D);
+        this.raycaster.render(viewMatrix, image, volume, gradients, tFunc, tfEditor2D, phong);
         
         long endTime = System.currentTimeMillis();
         double runningTime = (endTime - startTime);

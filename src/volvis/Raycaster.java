@@ -25,9 +25,90 @@ public abstract class Raycaster {
     protected TransferFunction tFunc;
     protected TransferFunction2DEditor tfEditor2D;
     protected GradientVolume gradients;
+    protected boolean phong;
         
     public Raycaster(int delta) {
         this.delta = delta;
+    }
+    
+    // This function assumes all parameters are equal for all color components
+    protected TFColor phong(double[] coord, TFColor color) {    
+        if (coord[0] < 1 || coord[0] >= volume.getDimX()-1 || coord[1] < 1 || coord[1] >= volume.getDimY()-1
+                || coord[2] < 1 || coord[2] >= volume.getDimZ()-1) {
+            return color;
+        }
+        
+        // Define parameters
+        double k_ambient = 0.1;
+        double k_diff = 0.7;
+        double k_spec = 0.2;
+        double alpha = 10;
+        
+        // Color of the light source
+        TFColor lightColor = new TFColor(1,1,1,1);
+        
+        // Calculate l_a * k_ambient
+        double part1_r = color.r * k_ambient;
+        double part1_g = color.g * k_ambient;
+        double part1_b = color.b * k_ambient;
+        
+        // Calculate l_l
+        double k1k2d = 0.5;
+        double l_l_r = color.r / k1k2d;
+        double l_l_g = color.g / k1k2d;
+        double l_l_b = color.b / k1k2d;
+        
+        //double k1 = 1;
+        //double k2 = 1;
+        //double l_l = lightColor.r / (k1 + k2 * VectorMath.distance(viewVec, coord));
+        
+        
+        // Get normalized local gradient vector        
+        // Not sure using math.floor is the correct way of doing this ...
+        int x = (int) Math.floor(coord[0]);
+        int y = (int) Math.floor(coord[1]);
+        int z = (int) Math.floor(coord[2]);
+        double gx = (0.5*(volume.getVoxel(x+1,y,z)-volume.getVoxel(x-1,y,z)));
+        double gy = (0.5*(volume.getVoxel(x,y+1,z)-volume.getVoxel(x,y-1,z)));
+        double gz = (0.5*(volume.getVoxel(x,y,z+1)-volume.getVoxel(x,y,z-1)));
+        double[] s = {gx, gy, gz};
+        double mag = getInterpolatedGradient(coord);
+        
+        // Calculate normalized gradient vector
+        double[] N = VectorMath.normalize(s, mag);
+        
+        // Since all vectors have viewpoint as origin, L is simply opposite of coord (right ...?)
+        double[] L = {-1*viewVec[0], -1*viewVec[1], -1*viewVec[2]};
+                
+        // Calculate L dotproduct N
+        double NL = VectorMath.dotproduct(L,N);
+        double part2 = k_diff * NL;
+        
+        // Calculate H, since light comes from view, V = L
+        double[] V = L;
+        double[] vl = VectorMath.add(V, L);
+        double[] H = VectorMath.normalize(vl);
+        
+        // Calculate NH
+        double NH = VectorMath.dotproduct(N,H);
+        
+        double part3 = k_spec * Math.pow(NH, alpha);
+        
+        TFColor result = new TFColor(part1_r, part1_g, part1_b, color.a);
+        
+        if (NL > 0) {
+            result.r += l_l_r * color.r * part2;
+            result.g += l_l_g * color.g * part2;
+            result.b += l_l_b * color.b * part2;
+        }
+        
+        if (NH > 0) {
+            result.r += l_l_r * color.r * part3;
+            result.g += l_l_g * color.g * part3;
+            result.b += l_l_b * color.b * part3;
+        }
+        
+        return result;
     }
     
     protected short getVoxel(double[] coord) {
@@ -87,14 +168,61 @@ public abstract class Raycaster {
         Sx += alpha * beta * gamma * Sx7;
         
         return (short) Sx;
-    }
+    }    
     
-    public void render(double[] viewMatrix, BufferedImage image, Volume volume, GradientVolume gradients, TransferFunction tFunc, TransferFunction2DEditor tfEditor2D) {
+    protected short getInterpolatedGradient(double[] coord) {
+        if (coord[0] < 0 || coord[0] >= volume.getDimX() || coord[1] < 0 || coord[1] >= volume.getDimY()
+                || coord[2] < 0 || coord[2] >= volume.getDimZ()) {
+            return 0;
+        }
+        
+        double x = coord[0];
+        double y = coord[1];
+        double z = coord[2];
+        
+        int xFloor = (int) Math.floor(x);
+        int yFloor = (int) Math.floor(y);
+        int zFloor = (int) Math.floor(z);
+        int xCeil = (int) Math.ceil(x);
+        int yCeil = (int) Math.ceil(y);
+        int zCeil = (int) Math.ceil(z);   
+        
+        if (xCeil >= volume.getDimX() || yCeil >= volume.getDimY() || zCeil >= volume.getDimZ()) {
+            return 0;
+        }
+        
+        float Sx0 = gradients.getGradient(xFloor, yFloor, zFloor).mag;
+        float Sx1 = gradients.getGradient(xCeil, yFloor, zFloor).mag;
+        float Sx2 = gradients.getGradient(xFloor, yCeil, zFloor).mag;
+        float Sx3 = gradients.getGradient(xCeil, yCeil, zFloor).mag;       
+        float Sx4 = gradients.getGradient(xFloor, yFloor, zCeil).mag;
+        float Sx5 = gradients.getGradient(xCeil, yFloor, zCeil).mag;
+        float Sx6 = gradients.getGradient(xFloor, yCeil, zCeil).mag;
+        float Sx7 = gradients.getGradient(xCeil, yCeil, zCeil).mag;
+        
+        double alpha = (x - Math.floor(x)) / (Math.ceil(x) - Math.floor(x)); // (x - x0) / (x1 - x0)
+        double beta = (y - Math.floor(y)) / (Math.ceil(y) - Math.floor(y));
+        double gamma = (z - Math.floor(z)) / (Math.ceil(z) - Math.floor(z));
+        
+        double Sx = (1 - alpha) * (1 - beta) * (1 - gamma) * Sx0;
+        Sx += alpha * (1 - beta) * (1 - gamma) * Sx1;
+        Sx += (1 - alpha) * beta * (1 - gamma) * Sx2;
+        Sx += alpha * beta * (1 - gamma) * Sx3;
+        Sx += (1 - alpha) * (1 - beta) * gamma * Sx4;
+        Sx += alpha * (1 - beta) * gamma * Sx5;
+        Sx += (1 - alpha) * beta * gamma * Sx6;
+        Sx += alpha * beta * gamma * Sx7;
+        
+        return (short) Sx;
+    }    
+    
+    public void render(double[] viewMatrix, BufferedImage image, Volume volume, GradientVolume gradients, TransferFunction tFunc, TransferFunction2DEditor tfEditor2D, boolean phong) {
         this.image = image;
         this.volume = volume;
         this.tFunc = tFunc;
         this.tfEditor2D = tfEditor2D;
         this.gradients = gradients;
+        this.phong = phong;
         
         // clear image
         for (int j = 0; j < image.getHeight(); j++) {

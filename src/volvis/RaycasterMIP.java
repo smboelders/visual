@@ -28,13 +28,11 @@ public class RaycasterMIP extends Raycaster {
                     }
                 }
 
-                // Map the intensity to a grey value by linear scaling
-                //voxelColor.r = maxVal / max;
-                //voxelColor.g = voxelColor.r;
-                //voxelColor.b = voxelColor.r;
-                //voxelColor.a = maxVal > 0 ? 1.0 : 0.0;  // this makes intensity 0 completely transparent and the rest opaque
-                // Alternatively, apply the transfer function to obtain a color
                 voxelColor = tFunc.getColor(maxVal);
+                
+                if (this.phong) {
+                    voxelColor = phong(pixelCoord, voxelColor);
+                }
                 
                 super.setPixel(i, j, voxelColor);
             }

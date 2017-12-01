@@ -9,52 +9,6 @@ public class RaycasterGradient extends Raycaster {
         super(delta);
     }   
     
-    private short getInterpolatedGradient(double[] coord) {
-        if (coord[0] < 0 || coord[0] >= volume.getDimX() || coord[1] < 0 || coord[1] >= volume.getDimY()
-                || coord[2] < 0 || coord[2] >= volume.getDimZ()) {
-            return 0;
-        }
-        
-        double x = coord[0];
-        double y = coord[1];
-        double z = coord[2];
-        
-        int xFloor = (int) Math.floor(x);
-        int yFloor = (int) Math.floor(y);
-        int zFloor = (int) Math.floor(z);
-        int xCeil = (int) Math.ceil(x);
-        int yCeil = (int) Math.ceil(y);
-        int zCeil = (int) Math.ceil(z);   
-        
-        if (xCeil >= volume.getDimX() || yCeil >= volume.getDimY() || zCeil >= volume.getDimZ()) {
-            return 0;
-        }
-        
-        float Sx0 = gradients.getGradient(xFloor, yFloor, zFloor).mag;
-        float Sx1 = gradients.getGradient(xCeil, yFloor, zFloor).mag;
-        float Sx2 = gradients.getGradient(xFloor, yCeil, zFloor).mag;
-        float Sx3 = gradients.getGradient(xCeil, yCeil, zFloor).mag;       
-        float Sx4 = gradients.getGradient(xFloor, yFloor, zCeil).mag;
-        float Sx5 = gradients.getGradient(xCeil, yFloor, zCeil).mag;
-        float Sx6 = gradients.getGradient(xFloor, yCeil, zCeil).mag;
-        float Sx7 = gradients.getGradient(xCeil, yCeil, zCeil).mag;
-        
-        double alpha = (x - Math.floor(x)) / (Math.ceil(x) - Math.floor(x)); // (x - x0) / (x1 - x0)
-        double beta = (y - Math.floor(y)) / (Math.ceil(y) - Math.floor(y));
-        double gamma = (z - Math.floor(z)) / (Math.ceil(z) - Math.floor(z));
-        
-        double Sx = (1 - alpha) * (1 - beta) * (1 - gamma) * Sx0;
-        Sx += alpha * (1 - beta) * (1 - gamma) * Sx1;
-        Sx += (1 - alpha) * beta * (1 - gamma) * Sx2;
-        Sx += alpha * beta * (1 - gamma) * Sx3;
-        Sx += (1 - alpha) * (1 - beta) * gamma * Sx4;
-        Sx += alpha * (1 - beta) * gamma * Sx5;
-        Sx += (1 - alpha) * beta * gamma * Sx6;
-        Sx += alpha * beta * gamma * Sx7;
-        
-        return (short) Sx;
-    }
-    
     @Override
     protected void method() {
         double baseIntensity = this.tfEditor2D.triangleWidget.baseIntensity;
@@ -91,7 +45,9 @@ public class RaycasterGradient extends Raycaster {
                     }    
                     voxelColor.a = voxelColor.a * color.a;                   
                     
-                    //TODO: phong
+                    if (this.phong && voxelColor.a > 0) {
+                        voxelColor = phong(pixelCoord, voxelColor);
+                    }
                     
                     TFColor temp = new TFColor(compositeColor.r, compositeColor.g, compositeColor.b, compositeColor.a);
                     compositeColor.r = voxelColor.r * voxelColor.a + (1 - voxelColor.a) * temp.r;

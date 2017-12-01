@@ -46,5 +46,37 @@ public class VectorMath {
         return Math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
     }
     
+    // Normalizes vector v
+    public static double[] normalize(double[] v, double mag) {
+        double x = v[0] / mag;
+        double y = v[1] / mag;
+        double z = v[2] / mag;
+        double[] result = {x,y,z};
+        return result;
+    }
+    
+    // Normalizes vector v
+    public static double[] normalize(double[] v) {
+        double x = v[0];
+        double y = v[1];
+        double z = v[2];
+        double mag = Math.sqrt(x*x + y*y + z*z);
+        
+        x = x / mag;
+        y = y / mag;
+        z = z / mag;
+        
+        double[] result = {x,y,z};
+        return result;
+    }
+    
+    // Adds v and w
+    public static double[] add(double[] v, double[] w) {
+        double x = v[0] + w[0];
+        double y = v[1] + w[1];
+        double z = v[2] + w[2];
+        double[] result = {x,y,z};
+        return result;
+    }
 
 }

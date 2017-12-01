@@ -24,14 +24,13 @@ public class RaycasterComposite extends Raycaster {
                             + volumeCenter[2] + k * delta * viewVec[2];                
                     
                     int val = getInterpolatedVoxel(pixelCoord);                    
-                    
-                    // Map the intensity to a grey value by linear scaling
-                    //voxelColor.r = maxVal / max;
-                    //voxelColor.g = voxelColor.r;
-                    //voxelColor.b = voxelColor.r;
-                    //voxelColor.a = maxVal > 0 ? 1.0 : 0.0;  // this makes intensity 0 completely transparent and the rest opaque
-                    // Alternatively, apply the transfer function to obtain a color
+
                     voxelColor = tFunc.getColor(val);    
+                    
+                    if (this.phong) {
+                        voxelColor = phong(pixelCoord, voxelColor);
+                    }
+                    
                     TFColor temp = new TFColor(compositeColor.r, compositeColor.g, compositeColor.b, compositeColor.a);
                     compositeColor.r = voxelColor.r * voxelColor.a + (1 - voxelColor.a) * temp.r;
                     compositeColor.g = voxelColor.g * voxelColor.a + (1 - voxelColor.a) * temp.g;

@@ -17,17 +17,17 @@ public class RaycasterGradient extends Raycaster {
         double lowerMag = this.tfEditor2D.triangleWidget.lowerMag;
         double upperMag = this.tfEditor2D.triangleWidget.upperMag;
         
-        for (int j = 0; j < image.getHeight(); j++) {
-            for (int i = 0; i < image.getWidth(); i++) {
+        for (int j = 0; j <= image.getHeight() - step; j+=step) {
+            for (int i = 0; i <= image.getWidth() - step; i+=step) {
                 TFColor compositeColor = new TFColor(0,0,0,1);
                 
-                for (int k = -imageCenter / delta; k < imageCenter / delta; k++) {
+                for (int k = -imageCenter / renderDelta; k < imageCenter / renderDelta; k++) {
                     pixelCoord[0] = uVec[0] * (i - imageCenter) + vVec[0] * (j - imageCenter)
-                            + volumeCenter[0] + k * delta * viewVec[0];
+                            + volumeCenter[0] + k * renderDelta * viewVec[0];
                     pixelCoord[1] = uVec[1] * (i - imageCenter) + vVec[1] * (j - imageCenter)
-                            + volumeCenter[1] + k * delta * viewVec[1];
+                            + volumeCenter[1] + k * renderDelta * viewVec[1];
                     pixelCoord[2] = uVec[2] * (i - imageCenter) + vVec[2] * (j - imageCenter)
-                            + volumeCenter[2] + k * delta * viewVec[2];                
+                            + volumeCenter[2] + k * renderDelta * viewVec[2];                
                     
                     int val = getInterpolatedVoxel(pixelCoord);   
                     double mag = getInterpolatedGradient(pixelCoord);  
@@ -45,7 +45,7 @@ public class RaycasterGradient extends Raycaster {
                     }    
                     voxelColor.a = voxelColor.a * color.a;                   
                     
-                    if (this.phong && voxelColor.a > 0) {
+                    if (!this.lowRes && this.phong && voxelColor.a > 0) {
                         voxelColor = phong(pixelCoord, voxelColor);
                     }
                     

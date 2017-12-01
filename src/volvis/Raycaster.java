@@ -26,8 +26,16 @@ public abstract class Raycaster {
     protected TransferFunction2DEditor tfEditor2D;
     protected GradientVolume gradients;
     protected boolean phong;
+    protected boolean lowRes;
+    
+    protected int step;
+    protected int renderDelta;
         
     public Raycaster(int delta) {
+        this.delta = delta;
+    }
+    
+    public void setDelta(int delta) {
         this.delta = delta;
     }
     
@@ -53,7 +61,7 @@ public abstract class Raycaster {
         double part1_b = lightColor.b * k_ambient;
         
         // Calculate l_l
-        double k1k2d = 0.8; // Should actually be k1*k2*d(x)
+        double k1k2d = 0.5; // Should actually be k1*k2*d(x)
         double l_l_r = lightColor.r / k1k2d;
         double l_l_g = lightColor.g / k1k2d;
         double l_l_b = lightColor.b / k1k2d;       
@@ -211,13 +219,17 @@ public abstract class Raycaster {
         return (short) Sx;
     }    
     
-    public void render(double[] viewMatrix, BufferedImage image, Volume volume, GradientVolume gradients, TransferFunction tFunc, TransferFunction2DEditor tfEditor2D, boolean phong) {
+    public void render(double[] viewMatrix, BufferedImage image, Volume volume, GradientVolume gradients, TransferFunction tFunc, TransferFunction2DEditor tfEditor2D, boolean phong, boolean lowRes) {
         this.image = image;
         this.volume = volume;
         this.tFunc = tFunc;
         this.tfEditor2D = tfEditor2D;
         this.gradients = gradients;
         this.phong = phong;
+        this.lowRes = lowRes;
+                
+        renderDelta = this.lowRes ? this.delta : this.delta; // Could be used to temporarily increase delta while interactive mode is active
+        step = this.lowRes ? 8 : 1;    
         
         // clear image
         for (int j = 0; j < image.getHeight(); j++) {
@@ -244,7 +256,7 @@ public abstract class Raycaster {
 
         // sample on a plane through the origin of the volume data
         max = volume.getMaximum();
-        voxelColor = new TFColor();
+        voxelColor = new TFColor();       
         
         this.method();
     }
@@ -258,6 +270,15 @@ public abstract class Raycaster {
         int c_green = color.g <= 1.0 ? (int) Math.floor(color.g * 255) : 255;
         int c_blue = color.b <= 1.0 ? (int) Math.floor(color.b * 255) : 255;
         int pixelColor = (c_alpha << 24) | (c_red << 16) | (c_green << 8) | c_blue;
-        image.setRGB(i, j, pixelColor);
+        
+        if (this.lowRes) {
+            for (int a = 0; a < step; a++) {
+                for (int b = 0; b < step; b++) {
+                    image.setRGB(i+a, j+b, pixelColor);
+                }
+            }
+        } else {
+            image.setRGB(i, j, pixelColor);
+        }        
     }
 }

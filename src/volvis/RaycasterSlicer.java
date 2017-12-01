@@ -11,8 +11,8 @@ public class RaycasterSlicer extends Raycaster {
     
     @Override
     protected void method() {
-        for (int j = 0; j < image.getHeight(); j++) {
-            for (int i = 0; i < image.getWidth(); i++) {
+        for (int j = 0; j <= image.getHeight() - step; j+=step) {
+            for (int i = 0; i <= image.getWidth() - step; i+=step) {
                 pixelCoord[0] = uVec[0] * (i - imageCenter) + vVec[0] * (j - imageCenter)
                         + volumeCenter[0];
                 pixelCoord[1] = uVec[1] * (i - imageCenter) + vVec[1] * (j - imageCenter)

@@ -45,23 +45,18 @@ public abstract class Raycaster {
         double alpha = 10;
         
         // Color of the light source
-        TFColor lightColor = new TFColor(1,1,1,1);
+        TFColor lightColor = new TFColor(color.r,color.g,color.b,1);
         
         // Calculate l_a * k_ambient
-        double part1_r = color.r * k_ambient;
-        double part1_g = color.g * k_ambient;
-        double part1_b = color.b * k_ambient;
+        double part1_r = lightColor.r * k_ambient;
+        double part1_g = lightColor.g * k_ambient;
+        double part1_b = lightColor.b * k_ambient;
         
         // Calculate l_l
-        double k1k2d = 0.5;
-        double l_l_r = color.r / k1k2d;
-        double l_l_g = color.g / k1k2d;
-        double l_l_b = color.b / k1k2d;
-        
-        //double k1 = 1;
-        //double k2 = 1;
-        //double l_l = lightColor.r / (k1 + k2 * VectorMath.distance(viewVec, coord));
-        
+        double k1k2d = 0.8; // Should actually be k1*k2*d(x)
+        double l_l_r = lightColor.r / k1k2d;
+        double l_l_g = lightColor.g / k1k2d;
+        double l_l_b = lightColor.b / k1k2d;       
         
         // Get normalized local gradient vector        
         // Not sure using math.floor is the correct way of doing this ...
@@ -72,10 +67,10 @@ public abstract class Raycaster {
         double gy = (0.5*(volume.getVoxel(x,y+1,z)-volume.getVoxel(x,y-1,z)));
         double gz = (0.5*(volume.getVoxel(x,y,z+1)-volume.getVoxel(x,y,z-1)));
         double[] s = {gx, gy, gz};
-        double mag = getInterpolatedGradient(coord);
+        //double mag = getInterpolatedGradient(coord);
         
         // Calculate normalized gradient vector
-        double[] N = VectorMath.normalize(s, mag);
+        double[] N = VectorMath.normalize(s);
         
         // Since all vectors have viewpoint as origin, L is simply opposite of coord (right ...?)
         double[] L = {-1*viewVec[0], -1*viewVec[1], -1*viewVec[2]};
@@ -86,8 +81,8 @@ public abstract class Raycaster {
         
         // Calculate H, since light comes from view, V = L
         double[] V = L;
-        double[] vl = VectorMath.add(V, L);
-        double[] H = VectorMath.normalize(vl);
+        double[] VplusL = VectorMath.add(V, L);
+        double[] H = VectorMath.normalize(VplusL);
         
         // Calculate NH
         double NH = VectorMath.dotproduct(N,H);
@@ -97,15 +92,15 @@ public abstract class Raycaster {
         TFColor result = new TFColor(part1_r, part1_g, part1_b, color.a);
         
         if (NL > 0) {
-            result.r += l_l_r * color.r * part2;
-            result.g += l_l_g * color.g * part2;
-            result.b += l_l_b * color.b * part2;
+            result.r += l_l_r * part2;
+            result.g += l_l_g * part2;
+            result.b += l_l_b * part2;
         }
         
         if (NH > 0) {
-            result.r += l_l_r * color.r * part3;
-            result.g += l_l_g * color.g * part3;
-            result.b += l_l_b * color.b * part3;
+            result.r += l_l_r * part3;
+            result.g += l_l_g * part3;
+            result.b += l_l_b * part3;
         }
         
         return result;

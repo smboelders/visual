@@ -20,11 +20,6 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
     RaycastRenderer renderer;
     TransferFunctionEditor tfEditor = null;
     TransferFunction2DEditor tfEditor2D = null;
-    private int delta = 1;
-    private RaycasterSlicer slicerInstance = new RaycasterSlicer(delta);
-    private RaycasterComposite compositeInstance = new RaycasterComposite(delta);
-    private RaycasterMIP MIPInstance = new RaycasterMIP(delta);
-    private RaycasterGradient gradientInstance = new RaycasterGradient(delta);
     
     /**
      * Creates new form RaycastRendererPanel
@@ -32,7 +27,7 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
     public RaycastRendererPanel(RaycastRenderer renderer) {
         initComponents();
         this.renderer = renderer;
-        this.renderer.setRenderType(this.slicerInstance);
+        this.renderer.setRenderType("slicer");
     }
 
     public void setSpeedLabel(String text) {
@@ -143,19 +138,19 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void mipButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mipButtonActionPerformed
-        renderer.setRenderType(this.MIPInstance);
+        renderer.setRenderType("MIP");
     }//GEN-LAST:event_mipButtonActionPerformed
 
     private void slicerButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_slicerButtonActionPerformed
-        renderer.setRenderType(this.slicerInstance);
+        renderer.setRenderType("slicer");
     }//GEN-LAST:event_slicerButtonActionPerformed
 
     private void compositingButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_compositingButtonActionPerformed
-        renderer.setRenderType(this.compositeInstance);
+        renderer.setRenderType("composite");
     }//GEN-LAST:event_compositingButtonActionPerformed
 
     private void tf2dButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tf2dButtonActionPerformed
-        renderer.setRenderType(this.gradientInstance);
+        renderer.setRenderType("gradient");
     }//GEN-LAST:event_tf2dButtonActionPerformed
 
     private void shadingCheckboxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_shadingCheckboxActionPerformed

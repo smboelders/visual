@@ -9,7 +9,7 @@ import volume.Volume;
 /** *
  * @author Stan Roelofs
  */
-public abstract class Raycaster {
+public abstract class Raycaster extends Thread {
     
     protected int imageCenter;
     protected int delta;
@@ -30,13 +30,51 @@ public abstract class Raycaster {
     
     protected int step;
     protected int renderDelta;
-        
-    public Raycaster(int delta) {
-        this.delta = delta;
-    }
+    private double[] viewMatrix;
     
-    public void setDelta(int delta) {
+    protected int startHeight;
+    protected int endHeight;
+        
+    public Raycaster(int startHeight, int endHeight, int delta, double[] viewMatrix, BufferedImage image, 
+            boolean phong, boolean lowRes, Volume volume) {
         this.delta = delta;
+        this.viewMatrix = viewMatrix;
+        this.image = image;
+        this.phong = phong;
+        this.lowRes = lowRes;
+        this.startHeight = startHeight;
+        this.endHeight = endHeight;
+        this.volume = volume;
+        
+        renderDelta = this.lowRes ? this.delta : this.delta; // Could be used to temporarily increase delta while interactive mode is active
+        step = this.lowRes ? 8 : 1;    
+        
+        // clear image
+        for (int j = startHeight; j < endHeight; j++) {
+            for (int i = 0; i < image.getWidth(); i++) {
+                image.setRGB(i, j, 0);
+            }
+        }
+
+        // vector uVec and vVec define a plane through the origin, 
+        // perpendicular to the view vector viewVec
+        viewVec = new double[3];
+        uVec = new double[3];
+        vVec = new double[3];
+        VectorMath.setVector(viewVec, viewMatrix[2], viewMatrix[6], viewMatrix[10]);
+        VectorMath.setVector(uVec, viewMatrix[0], viewMatrix[4], viewMatrix[8]);
+        VectorMath.setVector(vVec, viewMatrix[1], viewMatrix[5], viewMatrix[9]);
+
+        // image is square
+        imageCenter = image.getWidth() / 2;
+
+        pixelCoord = new double[3];
+        volumeCenter = new double[3];
+        VectorMath.setVector(volumeCenter, volume.getDimX() / 2, volume.getDimY() / 2, volume.getDimZ() / 2);
+
+        // sample on a plane through the origin of the volume data
+        max = volume.getMaximum();
+        voxelColor = new TFColor();     
     }
     
     // This function assumes all parameters are equal for all color components
@@ -218,50 +256,6 @@ public abstract class Raycaster {
         
         return (short) Sx;
     }    
-    
-    public void render(double[] viewMatrix, BufferedImage image, Volume volume, GradientVolume gradients, TransferFunction tFunc, TransferFunction2DEditor tfEditor2D, boolean phong, boolean lowRes) {
-        this.image = image;
-        this.volume = volume;
-        this.tFunc = tFunc;
-        this.tfEditor2D = tfEditor2D;
-        this.gradients = gradients;
-        this.phong = phong;
-        this.lowRes = lowRes;
-                
-        renderDelta = this.lowRes ? this.delta : this.delta; // Could be used to temporarily increase delta while interactive mode is active
-        step = this.lowRes ? 8 : 1;    
-        
-        // clear image
-        for (int j = 0; j < image.getHeight(); j++) {
-            for (int i = 0; i < image.getWidth(); i++) {
-                image.setRGB(i, j, 0);
-            }
-        }
-
-        // vector uVec and vVec define a plane through the origin, 
-        // perpendicular to the view vector viewVec
-        viewVec = new double[3];
-        uVec = new double[3];
-        vVec = new double[3];
-        VectorMath.setVector(viewVec, viewMatrix[2], viewMatrix[6], viewMatrix[10]);
-        VectorMath.setVector(uVec, viewMatrix[0], viewMatrix[4], viewMatrix[8]);
-        VectorMath.setVector(vVec, viewMatrix[1], viewMatrix[5], viewMatrix[9]);
-
-        // image is square
-        imageCenter = image.getWidth() / 2;
-
-        pixelCoord = new double[3];
-        volumeCenter = new double[3];
-        VectorMath.setVector(volumeCenter, volume.getDimX() / 2, volume.getDimY() / 2, volume.getDimZ() / 2);
-
-        // sample on a plane through the origin of the volume data
-        max = volume.getMaximum();
-        voxelColor = new TFColor();       
-        
-        this.method();
-    }
-    
-    protected abstract void method();
     
     protected void setPixel(int i, int j, TFColor color) {
         // BufferedImage expects a pixel color packed as ARGB in an int

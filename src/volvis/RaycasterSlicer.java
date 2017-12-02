@@ -1,17 +1,21 @@
 package volvis;
 
+import java.awt.image.BufferedImage;
+import volume.Volume;
+
 /**
  * @author Stan Roelofs
  */
 public class RaycasterSlicer extends Raycaster {
     
-    public RaycasterSlicer(int delta) {
-        super(delta);
+    public RaycasterSlicer(int startHeight, int endHeight, int delta, double[] viewMatrix, BufferedImage image, 
+            boolean phong, boolean lowRes, Volume volume) {
+        super(startHeight, endHeight, delta, viewMatrix, image, phong, lowRes, volume);       
     }
     
     @Override
-    protected void method() {
-        for (int j = 0; j <= image.getHeight() - step; j+=step) {
+    public void run() {
+        for (int j = this.startHeight; j <= this.endHeight - step; j+=step) {
             for (int i = 0; i <= image.getWidth() - step; i+=step) {
                 pixelCoord[0] = uVec[0] * (i - imageCenter) + vVec[0] * (j - imageCenter)
                         + volumeCenter[0];

@@ -12,6 +12,8 @@ import gui.RaycastRendererPanel;
 import gui.TransferFunction2DEditor;
 import gui.TransferFunctionEditor;
 import java.awt.image.BufferedImage;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import util.TFChangeListener;
 import volume.GradientVolume;
 import volume.Volume;
@@ -22,7 +24,7 @@ import volume.Volume;
  */
 public class RaycastRenderer extends Renderer implements TFChangeListener {
 
-    private Raycaster raycaster;
+    private String raycaster;
     private boolean phong = false;
     private Volume volume = null;
     private GradientVolume gradients = null;
@@ -30,8 +32,11 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     TransferFunction tFunc;
     TransferFunctionEditor tfEditor;
     TransferFunction2DEditor tfEditor2D;
+    private final int delta = 1;    
+    private final int numThreads = 10;
+    Thread[] threads = new Thread[numThreads];
     
-    public void setRenderType(Raycaster raycaster) {
+    public void setRenderType(String raycaster) {
         this.raycaster = raycaster;
         this.changed();
     }
@@ -160,11 +165,45 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
 
         long startTime = System.currentTimeMillis();
 
-        if (this.interactiveMode) {
-            this.raycaster.render(viewMatrix, image, volume, gradients, tFunc, tfEditor2D, phong, true);
-        } else {
-            this.raycaster.render(viewMatrix, image, volume, gradients, tFunc, tfEditor2D, phong, false);
-        }        
+        int threadsUsed = this.interactiveMode ? 1 : this.numThreads;
+        
+        // Create threads
+        int height = image.getHeight();
+        int rows = height / threadsUsed;
+
+        for (int i = 0; i < threadsUsed; i++) {
+            if (threads[i] != null) {
+                threads[i].stop();
+            }
+            
+            int startRow = (int) (i * Math.floor(rows));
+            int endRow = i * rows + rows;
+            
+            // Since we use Math.floor above, we have to set the last thread's endRow to height
+            if (i == threadsUsed - 1) {
+                endRow = height;
+            }
+
+            if (this.raycaster.equals("slicer")) {
+                threads[i] = new RaycasterSlicer(startRow, endRow, delta, viewMatrix, image, phong, this.interactiveMode, volume);
+            } else if (this.raycaster.equals("MIP")) {
+                threads[i] = new RaycasterMIP(startRow, endRow, delta, viewMatrix, image, phong, this.interactiveMode, volume, tFunc);
+            } else if (this.raycaster.equals("gradient")) {
+                threads[i] = new RaycasterGradient(startRow, endRow, delta, viewMatrix, image, phong, this.interactiveMode, volume, gradients, tfEditor2D);               
+            } else if (this.raycaster.equals("composite")) {
+                threads[i] = new RaycasterComposite(startRow, endRow, delta, viewMatrix, image, phong, this.interactiveMode, volume, tFunc);
+            }
+            threads[i].start();
+        }
+
+        for (Thread thread : threads) {
+            try {
+                thread.join();
+            } catch (InterruptedException ex) {
+                Logger.getLogger(RaycastRenderer.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        
         
         long endTime = System.currentTimeMillis();
         double runningTime = (endTime - startTime);

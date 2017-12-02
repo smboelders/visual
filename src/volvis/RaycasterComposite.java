@@ -1,17 +1,23 @@
 package volvis;
 
+import java.awt.image.BufferedImage;
+import volume.Volume;
+
 /** 
  * @author Stan Roelofs
  */
 public class RaycasterComposite extends Raycaster {
     
-    public RaycasterComposite(int delta) {
-        super(delta);
+    public RaycasterComposite(int startHeight, int endHeight, int delta, double[] viewMatrix, BufferedImage image, 
+            boolean phong, boolean lowRes, Volume volume, TransferFunction tFunc) {
+        super(startHeight, endHeight, delta, viewMatrix, image, phong, lowRes, volume);
+        
+        this.tFunc = tFunc;
     }
     
     @Override
-    protected void method() {
-        for (int j = 0; j <= image.getHeight() - step; j+=step) {
+    public void run() {
+        for (int j = this.startHeight; j <= this.endHeight - step; j+=step) {
             for (int i = 0; i <= image.getWidth() - step; i+=step) {
                 TFColor compositeColor = new TFColor(0,0,0,1);
                 

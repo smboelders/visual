@@ -1,23 +1,32 @@
 package volvis;
 
+import gui.TransferFunction2DEditor;
+import java.awt.image.BufferedImage;
+import volume.GradientVolume;
+import volume.Volume;
+
 /**
  * @author Stan Roelofs
  */
 public class RaycasterGradient extends Raycaster {
     
-    public RaycasterGradient(int delta) {
-        super(delta);
-    }   
+    public RaycasterGradient(int startHeight, int endHeight, int delta, double[] viewMatrix, BufferedImage image, 
+            boolean phong, boolean lowRes, Volume volume, GradientVolume gradients, TransferFunction2DEditor tfEditor2D) {
+        super(startHeight, endHeight, delta, viewMatrix, image, phong, lowRes, volume);
+
+        this.tfEditor2D = tfEditor2D;
+        this.gradients = gradients;
+    }
     
     @Override
-    protected void method() {
+    public void run() {
         double baseIntensity = this.tfEditor2D.triangleWidget.baseIntensity;
         double radius = this.tfEditor2D.triangleWidget.radius;
         TFColor color = this.tfEditor2D.triangleWidget.color;    
         double lowerMag = this.tfEditor2D.triangleWidget.lowerMag;
         double upperMag = this.tfEditor2D.triangleWidget.upperMag;
         
-        for (int j = 0; j <= image.getHeight() - step; j+=step) {
+        for (int j = this.startHeight; j <= this.endHeight - step; j+=step) {
             for (int i = 0; i <= image.getWidth() - step; i+=step) {
                 TFColor compositeColor = new TFColor(0,0,0,1);
                 

@@ -68,8 +68,7 @@ public class GradientVolume {
                 float gz = (float) (0.5*(volume.getVoxel(x,y,z+1)-volume.getVoxel(x,y,z-1)));
                 
                 //Store gradient vector in VoxelGradient object.
-                VoxelGradient value;
-                value = new VoxelGradient(gx, gy, gz);
+                VoxelGradient value = new VoxelGradient(gx, gy, gz);
                 
                 //Add the VoxelGradient to the data array
                 setGradient(x, y, z, value);

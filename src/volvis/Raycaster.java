@@ -30,27 +30,31 @@ public abstract class Raycaster extends Thread {
     
     protected int step;
     protected int renderDelta;
-    private double[] viewMatrix;
+    private final double[] viewMatrix;
     
-    protected int startHeight;
-    protected int endHeight;
+    protected int startRow;
+    protected int endRow;
         
-    public Raycaster(int startHeight, int endHeight, int delta, double[] viewMatrix, BufferedImage image, 
+    public Raycaster(int startRow, int endRow, int delta, double[] viewMatrix, BufferedImage image, 
             boolean phong, boolean lowRes, Volume volume) {
         this.delta = delta;
         this.viewMatrix = viewMatrix;
         this.image = image;
         this.phong = phong;
         this.lowRes = lowRes;
-        this.startHeight = startHeight;
-        this.endHeight = endHeight;
-        this.volume = volume;
-        
-        renderDelta = this.lowRes ? this.delta : this.delta; // Could be used to temporarily increase delta while interactive mode is active
-        step = this.lowRes ? 8 : 1;    
+        this.startRow = startRow;
+        this.endRow = endRow;
+        this.volume = volume;        
+    }
+    
+    // Initializes raycaster
+    // Seperate from constructor such that it can be done in the background
+    protected void init() {
+        renderDelta = this.lowRes ? this.delta : this.delta;
+        step = this.lowRes ? 4 : 1;    
         
         // clear image
-        for (int j = startHeight; j < endHeight; j++) {
+        for (int j = startRow; j < endRow; j++) {
             for (int i = 0; i < image.getWidth(); i++) {
                 image.setRGB(i, j, 0);
             }
@@ -152,20 +156,7 @@ public abstract class Raycaster extends Thread {
         return result;
     }
     
-    protected short getVoxel(double[] coord) {
-        if (coord[0] < 0 || coord[0] >= volume.getDimX() || coord[1] < 0 || coord[1] >= volume.getDimY()
-                || coord[2] < 0 || coord[2] >= volume.getDimZ()) {
-            return 0;
-        }
-
-        int x = (int) Math.floor(coord[0]);
-        int y = (int) Math.floor(coord[1]);
-        int z = (int) Math.floor(coord[2]);
-
-        return volume.getVoxel(x, y, z);
-    }   
-    
-    protected short getInterpolatedVoxel(double[] coord) {
+    protected short TripleInterpolation(double[] coord, boolean gradient) {
         if (coord[0] < 0 || coord[0] >= volume.getDimX() || coord[1] < 0 || coord[1] >= volume.getDimY()
                 || coord[2] < 0 || coord[2] >= volume.getDimZ()) {
             return 0;
@@ -186,14 +177,26 @@ public abstract class Raycaster extends Thread {
             return 0;
         }
         
-        short Sx0 = volume.getVoxel(xFloor, yFloor, zFloor);
-        short Sx1 = volume.getVoxel(xCeil, yFloor, zFloor);
-        short Sx2 = volume.getVoxel(xFloor, yCeil, zFloor);
-        short Sx3 = volume.getVoxel(xCeil, yCeil, zFloor);       
-        short Sx4 = volume.getVoxel(xFloor, yFloor, zCeil);
-        short Sx5 = volume.getVoxel(xCeil, yFloor, zCeil);
-        short Sx6 = volume.getVoxel(xFloor, yCeil, zCeil);
-        short Sx7 = volume.getVoxel(xCeil, yCeil, zCeil);
+        float Sx0,Sx1,Sx2,Sx3,Sx4,Sx5,Sx6,Sx7;
+        if (!gradient) {
+            Sx0 = volume.getVoxel(xFloor, yFloor, zFloor);
+            Sx1 = volume.getVoxel(xCeil, yFloor, zFloor);
+            Sx2 = volume.getVoxel(xFloor, yCeil, zFloor);
+            Sx3 = volume.getVoxel(xCeil, yCeil, zFloor);       
+            Sx4 = volume.getVoxel(xFloor, yFloor, zCeil);
+            Sx5 = volume.getVoxel(xCeil, yFloor, zCeil);
+            Sx6 = volume.getVoxel(xFloor, yCeil, zCeil);
+            Sx7 = volume.getVoxel(xCeil, yCeil, zCeil);
+        } else {
+            Sx0 = gradients.getGradient(xFloor, yFloor, zFloor).mag;
+            Sx1 = gradients.getGradient(xCeil, yFloor, zFloor).mag;
+            Sx2 = gradients.getGradient(xFloor, yCeil, zFloor).mag;
+            Sx3 = gradients.getGradient(xCeil, yCeil, zFloor).mag;       
+            Sx4 = gradients.getGradient(xFloor, yFloor, zCeil).mag;
+            Sx5 = gradients.getGradient(xCeil, yFloor, zCeil).mag;
+            Sx6 = gradients.getGradient(xFloor, yCeil, zCeil).mag;
+            Sx7 = gradients.getGradient(xCeil, yCeil, zCeil).mag;
+        }
         
         double alpha = (x - Math.floor(x)) / (Math.ceil(x) - Math.floor(x)); // (x - x0) / (x1 - x0)
         double beta = (y - Math.floor(y)) / (Math.ceil(y) - Math.floor(y));
@@ -209,54 +212,9 @@ public abstract class Raycaster extends Thread {
         Sx += alpha * beta * gamma * Sx7;
         
         return (short) Sx;
-    }    
+    }        
     
-    protected short getInterpolatedGradient(double[] coord) {
-        if (coord[0] < 0 || coord[0] >= volume.getDimX() || coord[1] < 0 || coord[1] >= volume.getDimY()
-                || coord[2] < 0 || coord[2] >= volume.getDimZ()) {
-            return 0;
-        }
-        
-        double x = coord[0];
-        double y = coord[1];
-        double z = coord[2];
-        
-        int xFloor = (int) Math.floor(x);
-        int yFloor = (int) Math.floor(y);
-        int zFloor = (int) Math.floor(z);
-        int xCeil = (int) Math.ceil(x);
-        int yCeil = (int) Math.ceil(y);
-        int zCeil = (int) Math.ceil(z);   
-        
-        if (xCeil >= volume.getDimX() || yCeil >= volume.getDimY() || zCeil >= volume.getDimZ()) {
-            return 0;
-        }
-        
-        float Sx0 = gradients.getGradient(xFloor, yFloor, zFloor).mag;
-        float Sx1 = gradients.getGradient(xCeil, yFloor, zFloor).mag;
-        float Sx2 = gradients.getGradient(xFloor, yCeil, zFloor).mag;
-        float Sx3 = gradients.getGradient(xCeil, yCeil, zFloor).mag;       
-        float Sx4 = gradients.getGradient(xFloor, yFloor, zCeil).mag;
-        float Sx5 = gradients.getGradient(xCeil, yFloor, zCeil).mag;
-        float Sx6 = gradients.getGradient(xFloor, yCeil, zCeil).mag;
-        float Sx7 = gradients.getGradient(xCeil, yCeil, zCeil).mag;
-        
-        double alpha = (x - Math.floor(x)) / (Math.ceil(x) - Math.floor(x)); // (x - x0) / (x1 - x0)
-        double beta = (y - Math.floor(y)) / (Math.ceil(y) - Math.floor(y));
-        double gamma = (z - Math.floor(z)) / (Math.ceil(z) - Math.floor(z));
-        
-        double Sx = (1 - alpha) * (1 - beta) * (1 - gamma) * Sx0;
-        Sx += alpha * (1 - beta) * (1 - gamma) * Sx1;
-        Sx += (1 - alpha) * beta * (1 - gamma) * Sx2;
-        Sx += alpha * beta * (1 - gamma) * Sx3;
-        Sx += (1 - alpha) * (1 - beta) * gamma * Sx4;
-        Sx += alpha * (1 - beta) * gamma * Sx5;
-        Sx += (1 - alpha) * beta * gamma * Sx6;
-        Sx += alpha * beta * gamma * Sx7;
-        
-        return (short) Sx;
-    }    
-    
+    // Converts color to right format and sets the pixel (i,j) to color
     protected void setPixel(int i, int j, TFColor color) {
         // BufferedImage expects a pixel color packed as ARGB in an int
         int c_alpha = color.a <= 1.0 ? (int) Math.floor(color.a * 255) : 255;

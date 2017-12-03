@@ -8,14 +8,29 @@ import volume.Volume;
  */
 public class RaycasterSlicer extends Raycaster {
     
-    public RaycasterSlicer(int startHeight, int endHeight, int delta, double[] viewMatrix, BufferedImage image, 
+    public RaycasterSlicer(int startRow, int endRow, int delta, double[] viewMatrix, BufferedImage image, 
             boolean phong, boolean lowRes, Volume volume) {
-        super(startHeight, endHeight, delta, viewMatrix, image, phong, lowRes, volume);       
-    }
+        super(startRow, endRow, delta, viewMatrix, image, phong, lowRes, volume);       
+    }    
+        
+    // Gets voxel from volume
+    private short getVoxel(double[] coord) {
+        if (coord[0] < 0 || coord[0] >= volume.getDimX() || coord[1] < 0 || coord[1] >= volume.getDimY()
+                || coord[2] < 0 || coord[2] >= volume.getDimZ()) {
+            return 0;
+        }
+
+        int x = (int) Math.floor(coord[0]);
+        int y = (int) Math.floor(coord[1]);
+        int z = (int) Math.floor(coord[2]);
+
+        return volume.getVoxel(x, y, z);
+    }  
     
     @Override
     public void run() {
-        for (int j = this.startHeight; j <= this.endHeight - step; j+=step) {
+        init();
+        for (int j = this.startRow; j <= this.endRow - step; j+=step) {
             for (int i = 0; i <= image.getWidth() - step; i+=step) {
                 pixelCoord[0] = uVec[0] * (i - imageCenter) + vVec[0] * (j - imageCenter)
                         + volumeCenter[0];

@@ -33,7 +33,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     TransferFunctionEditor tfEditor;
     TransferFunction2DEditor tfEditor2D;
     private final int delta = 1;    
-    private final int numThreads = 10;
+    private final int numThreads = 10; // 10 works well for me, but probably depends on cpu
     Thread[] threads = new Thread[numThreads];
     
     public void setRenderType(String raycaster) {
@@ -151,6 +151,47 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         gl.glPopAttrib();
 
     }
+    
+    private void startThreads() {
+        // 2 threads for interactiveMode, numThreads otherwise
+        int threadsUsed = this.interactiveMode ? 2 : this.numThreads;
+        
+        // Calculate number of rows per thread
+        int height = image.getHeight();
+        int rows = height / threadsUsed;
+        
+        // Create threads
+        for (int i = 0; i < threadsUsed; i++) {           
+            int startRow = (int) (i * Math.floor(rows));
+            int endRow = i * rows + rows;
+            
+            // Since we use Math.floor to round the number of rows, we have to set the last thread's endRow to height such that we render the full image
+            if (i == threadsUsed - 1) {
+                endRow = height;
+            }
+
+            // Start thread based on value in this.raycaster
+            if (this.raycaster.equals("slicer")) {
+                threads[i] = new RaycasterSlicer(startRow, endRow, delta, viewMatrix, image, phong, this.interactiveMode, volume);
+            } else if (this.raycaster.equals("MIP")) {
+                threads[i] = new RaycasterMIP(startRow, endRow, delta, viewMatrix, image, phong, this.interactiveMode, volume, tFunc);
+            } else if (this.raycaster.equals("gradient")) {
+                threads[i] = new RaycasterGradient(startRow, endRow, delta, viewMatrix, image, phong, this.interactiveMode, volume, gradients, tfEditor2D);               
+            } else if (this.raycaster.equals("composite")) {
+                threads[i] = new RaycasterComposite(startRow, endRow, delta, viewMatrix, image, phong, this.interactiveMode, volume, tFunc);
+            }
+            threads[i].start();
+        }
+
+        // Wait for each thread to finish
+        for (Thread thread : threads) {
+            try {
+                thread.join();
+            } catch (InterruptedException ex) {
+                Logger.getLogger(RaycastRenderer.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }           
+    }
 
     @Override
     public void visualize(GL2 gl) {
@@ -164,46 +205,8 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         gl.glGetDoublev(GL2.GL_MODELVIEW_MATRIX, viewMatrix, 0);
 
         long startTime = System.currentTimeMillis();
-
-        int threadsUsed = this.interactiveMode ? 1 : this.numThreads;
         
-        // Create threads
-        int height = image.getHeight();
-        int rows = height / threadsUsed;
-
-        for (int i = 0; i < threadsUsed; i++) {
-            if (threads[i] != null) {
-                threads[i].stop();
-            }
-            
-            int startRow = (int) (i * Math.floor(rows));
-            int endRow = i * rows + rows;
-            
-            // Since we use Math.floor above, we have to set the last thread's endRow to height
-            if (i == threadsUsed - 1) {
-                endRow = height;
-            }
-
-            if (this.raycaster.equals("slicer")) {
-                threads[i] = new RaycasterSlicer(startRow, endRow, delta, viewMatrix, image, phong, this.interactiveMode, volume);
-            } else if (this.raycaster.equals("MIP")) {
-                threads[i] = new RaycasterMIP(startRow, endRow, delta, viewMatrix, image, phong, this.interactiveMode, volume, tFunc);
-            } else if (this.raycaster.equals("gradient")) {
-                threads[i] = new RaycasterGradient(startRow, endRow, delta, viewMatrix, image, phong, this.interactiveMode, volume, gradients, tfEditor2D);               
-            } else if (this.raycaster.equals("composite")) {
-                threads[i] = new RaycasterComposite(startRow, endRow, delta, viewMatrix, image, phong, this.interactiveMode, volume, tFunc);
-            }
-            threads[i].start();
-        }
-
-        for (Thread thread : threads) {
-            try {
-                thread.join();
-            } catch (InterruptedException ex) {
-                Logger.getLogger(RaycastRenderer.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-        
+        startThreads();        
         
         long endTime = System.currentTimeMillis();
         double runningTime = (endTime - startTime);

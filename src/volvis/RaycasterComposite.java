@@ -8,8 +8,10 @@ import volume.Volume;
  */
 public class RaycasterComposite extends Raycaster {
     
-    public RaycasterComposite(int startRow, int endRow, int delta, double[] viewMatrix, BufferedImage image, 
-            boolean phong, boolean lowRes, Volume volume, TransferFunction tFunc) {
+    public RaycasterComposite(int startRow, int endRow, int delta, 
+            double[] viewMatrix, BufferedImage image, boolean phong, 
+            boolean lowRes, Volume volume, TransferFunction tFunc) {
+        
         super(startRow, endRow, delta, viewMatrix, image, phong, lowRes, volume);
         
         this.tFunc = tFunc;
@@ -20,8 +22,10 @@ public class RaycasterComposite extends Raycaster {
         init();
         for (int j = this.startRow; j <= this.endRow - step; j+=step) {
             for (int i = 0; i <= image.getWidth() - step; i+=step) {
+                // Initialize color for pixel (i,j)
                 TFColor compositeColor = new TFColor(0,0,0,1);
                 
+                // Cast ray back to front
                 for (int k = -imageCenter / renderDelta; k < imageCenter / renderDelta; k++) {
                     pixelCoord[0] = uVec[0] * (i - imageCenter) + vVec[0] * (j - imageCenter)
                             + volumeCenter[0] + k * renderDelta * viewVec[0];
@@ -30,20 +34,25 @@ public class RaycasterComposite extends Raycaster {
                     pixelCoord[2] = uVec[2] * (i - imageCenter) + vVec[2] * (j - imageCenter)
                             + volumeCenter[2] + k * renderDelta * viewVec[2];                
                     
+                    // Calculate value at pixelCoord using interpolation
                     int val = TripleInterpolation(pixelCoord, false);                    
 
+                    // Get color corresponding to this value from transfer function
                     voxelColor = tFunc.getColor(val);    
                     
-                    if (this.phong) {
+                    // If phong shading is enabled, call phong function to obtain new color
+                    if (!this.lowRes && this.phong) {
                         voxelColor = phong(pixelCoord, voxelColor);
                     }
                     
+                    // Update compositeColor                   
                     TFColor temp = new TFColor(compositeColor.r, compositeColor.g, compositeColor.b, compositeColor.a);
                     compositeColor.r = voxelColor.r * voxelColor.a + (1 - voxelColor.a) * temp.r;
                     compositeColor.g = voxelColor.g * voxelColor.a + (1 - voxelColor.a) * temp.g;
                     compositeColor.b = voxelColor.b * voxelColor.a + (1 - voxelColor.a) * temp.b;
                 }                
 
+                // Set pixel i,j to compositeColor in this.image
                 super.setPixel(i, j, compositeColor);
             }
         }

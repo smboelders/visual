@@ -8,30 +8,45 @@ import volume.Volume;
 
 /** *
  * @author Stan Roelofs
+ * General Ray caster class 
+ * Contains common variables / functions used by ray casters
  */
 public abstract class Raycaster extends Thread {
     
     protected int imageCenter;
     protected int delta;
+    
     protected BufferedImage image;
+    
     protected double[] viewVec;
     protected double[] uVec;
     protected double[] vVec;
-    protected double max;
-    protected TFColor voxelColor;
+    private final double[] viewMatrix;
     protected double[] pixelCoord;
     protected double[] volumeCenter;
+    
+    protected double max;
+    
+    protected TFColor voxelColor;
+
     protected Volume volume;
     protected TransferFunction tFunc;
     protected TransferFunction2DEditor tfEditor2D;
     protected GradientVolume gradients;
+    
     protected boolean phong;
     protected boolean lowRes;
     
-    protected int step;
-    protected int renderDelta;
-    private final double[] viewMatrix;
+    /* Step size when looping over image.width and image.height
+     * 1 by default, increasing this will set multiple pixels to the same value
+     * to obtain a low res image
+     */
+    protected int step;    
     
+    // Actual value of delta that will be used to render, can be increased when lowres is enabled for better performance
+    protected int renderDelta;  
+    
+    // Defines which rows of the final image have to be computed by this thread
     protected int startRow;
     protected int endRow;
         
@@ -48,7 +63,6 @@ public abstract class Raycaster extends Thread {
     }
     
     // Initializes raycaster
-    // Seperate from constructor such that it can be done in the background
     protected void init() {
         renderDelta = this.lowRes ? this.delta : this.delta;
         step = this.lowRes ? 4 : 1;    
@@ -81,7 +95,6 @@ public abstract class Raycaster extends Thread {
         voxelColor = new TFColor();     
     }
     
-    // This function assumes all parameters are equal for all color components
     protected TFColor phong(double[] coord, TFColor color) {    
         if (coord[0] < 1 || coord[0] >= volume.getDimX()-1 || coord[1] < 1 || coord[1] >= volume.getDimY()-1
                 || coord[2] < 1 || coord[2] >= volume.getDimZ()-1) {
@@ -95,7 +108,7 @@ public abstract class Raycaster extends Thread {
         double alpha = 10;
         
         // Color of the light source
-        TFColor lightColor = new TFColor(color.r,color.g,color.b,1);
+        TFColor lightColor = new TFColor(1,1,1,1);
         
         // Calculate l_a * k_ambient
         double part1_r = lightColor.r * k_ambient;
@@ -103,19 +116,19 @@ public abstract class Raycaster extends Thread {
         double part1_b = lightColor.b * k_ambient;
         
         // Calculate l_l
-        double k1k2d = 0.5; // Should actually be k1*k2*d(x)
-        double l_l_r = lightColor.r / k1k2d;
-        double l_l_g = lightColor.g / k1k2d;
-        double l_l_b = lightColor.b / k1k2d;       
+        double k1k2d = 1; // Should actually be k1*k2*d(x)
+        double l_l_r = color.r / k1k2d;
+        double l_l_g = color.g / k1k2d;
+        double l_l_b = color.b / k1k2d;       
         
         // Get normalized local gradient vector        
         // Not sure using math.floor is the correct way of doing this ...
         int x = (int) Math.floor(coord[0]);
         int y = (int) Math.floor(coord[1]);
         int z = (int) Math.floor(coord[2]);
-        double gx = (0.5*(volume.getVoxel(x+1,y,z)-volume.getVoxel(x-1,y,z)));
-        double gy = (0.5*(volume.getVoxel(x,y+1,z)-volume.getVoxel(x,y-1,z)));
-        double gz = (0.5*(volume.getVoxel(x,y,z+1)-volume.getVoxel(x,y,z-1)));
+        double gx = (0.5*(volume.getVoxel(x+1, y, z)-volume.getVoxel(x-1, y, z)));
+        double gy = (0.5*(volume.getVoxel(x, y+1, z)-volume.getVoxel(x, y-1, z)));
+        double gz = (0.5*(volume.getVoxel(x, y, z+1)-volume.getVoxel(x, y, z-1)));
         double[] s = {gx, gy, gz};
         //double mag = getInterpolatedGradient(coord);
         
@@ -156,6 +169,7 @@ public abstract class Raycaster extends Thread {
         return result;
     }
     
+    // Calculates a value for point defined by coord using linear interpolation
     protected short TripleInterpolation(double[] coord, boolean gradient) {
         if (coord[0] < 0 || coord[0] >= volume.getDimX() || coord[1] < 0 || coord[1] >= volume.getDimY()
                 || coord[2] < 0 || coord[2] >= volume.getDimZ()) {
@@ -223,6 +237,7 @@ public abstract class Raycaster extends Thread {
         int c_blue = color.b <= 1.0 ? (int) Math.floor(color.b * 255) : 255;
         int pixelColor = (c_alpha << 24) | (c_red << 16) | (c_green << 8) | c_blue;
         
+        // If low res is enabled, set multiple pixels to color
         if (this.lowRes) {
             for (int a = 0; a < step; a++) {
                 for (int b = 0; b < step; b++) {
@@ -233,4 +248,7 @@ public abstract class Raycaster extends Thread {
             image.setRGB(i, j, pixelColor);
         }        
     }
+    
+    @Override
+    public abstract void run();
 }

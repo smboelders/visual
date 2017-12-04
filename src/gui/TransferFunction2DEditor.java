@@ -184,9 +184,9 @@ public class TransferFunction2DEditor extends javax.swing.JPanel {
         radiusLabel.setText("jTextField3");
         radiusLabel.setMinimumSize(new java.awt.Dimension(84, 28));
 
-        jLabel9.setText("Lower");
+        jLabel9.setText("Lower threshhold");
 
-        jLabel10.setText("Upper");
+        jLabel10.setText("Upper threshold");
 
         tfUpperMag.setText("jTextField3");
         tfUpperMag.setMinimumSize(new java.awt.Dimension(84, 28));
@@ -248,7 +248,7 @@ public class TransferFunction2DEditor extends javax.swing.JPanel {
                                 .addComponent(tfLowerMag, javax.swing.GroupLayout.PREFERRED_SIZE, 84, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(jLabel10)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addGap(18, 18, 18)
                                 .addComponent(tfUpperMag, javax.swing.GroupLayout.PREFERRED_SIZE, 84, javax.swing.GroupLayout.PREFERRED_SIZE))))
                     .addComponent(plotPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
@@ -296,7 +296,6 @@ public class TransferFunction2DEditor extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void colorButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_colorButtonActionPerformed
-        // TODO add your handling code here:
         Color newColor = JColorChooser.showDialog(this, "Choose color", colorButton.getBackground());
         if (newColor != null) {
             colorButton.setBackground(newColor);
@@ -326,28 +325,40 @@ public class TransferFunction2DEditor extends javax.swing.JPanel {
 
     private void tfLowerMagActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tfLowerMagActionPerformed
         try {
-            double val = Double.parseDouble(tfLowerMag.getText());
-            if (!(val < 0 || val > triangleWidget.upperMag)) {
-                triangleWidget.lowerMag = val;
-                setSelectedInfo();
-                changed();
+            double value = Double.parseDouble(tfLowerMag.getText());
+            if (value < 0) {
+                value = 0;
+            } 
+            if (value > triangleWidget.upperMag) {
+                value = triangleWidget.upperMag;                
             }
+            triangleWidget.lowerMag = value;
         } catch (NumberFormatException e) {
+            // Default to zero
             triangleWidget.lowerMag = 0;
-        }
+        }        
+        tfView.repaint();
+        setSelectedInfo();
+        changed();
     }//GEN-LAST:event_tfLowerMagActionPerformed
 
     private void tfUpperMagActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tfUpperMagActionPerformed
         try {
-            double val = Double.parseDouble(tfUpperMag.getText());
-            if (!(val < 0 || val > maxGradientMagnitude)) {
-                triangleWidget.upperMag = val;
-                setSelectedInfo();
-                changed();
+            double value = Double.parseDouble(tfUpperMag.getText());
+            if (value > maxGradientMagnitude) {
+                value = maxGradientMagnitude;
+            } 
+            if (value < triangleWidget.lowerMag) {
+                value = triangleWidget.lowerMag;                
             }
+            triangleWidget.upperMag = value;
         } catch (NumberFormatException e) {
-            triangleWidget.upperMag = maxGradientMagnitude;
-        }
+            // Default to max gradient
+            triangleWidget.lowerMag = maxGradientMagnitude;
+        }        
+        tfView.repaint();
+        setSelectedInfo();
+        changed();
     }//GEN-LAST:event_tfUpperMagActionPerformed
 
     public class TriangleWidget {
@@ -355,6 +366,8 @@ public class TransferFunction2DEditor extends javax.swing.JPanel {
         public short baseIntensity;
         public double radius;
         public TFColor color;
+        
+        // Extend triangle widget to allow us to select an upper and lower threshold
         public double lowerMag;
         public double upperMag;
         
@@ -363,6 +376,8 @@ public class TransferFunction2DEditor extends javax.swing.JPanel {
             this.baseIntensity = base;
             this.radius = r;
             this.color = new TFColor(0.0, 204.0/255.0, 153.0/255.0, 0.3);
+            
+            // Select entire range of gradients by default
             this.lowerMag = 0;
             this.upperMag = max;
         }

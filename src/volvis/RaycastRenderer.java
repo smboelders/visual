@@ -12,8 +12,6 @@ import gui.RaycastRendererPanel;
 import gui.TransferFunction2DEditor;
 import gui.TransferFunctionEditor;
 import java.awt.image.BufferedImage;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import util.TFChangeListener;
 import volume.GradientVolume;
 import volume.Volume;
@@ -24,17 +22,17 @@ import volume.Volume;
  */
 public class RaycastRenderer extends Renderer implements TFChangeListener {
 
-    private String raycaster;
-    private boolean phong = false;
     private Volume volume = null;
     private GradientVolume gradients = null;
     RaycastRendererPanel panel;
     TransferFunction tFunc;
     TransferFunctionEditor tfEditor;
-    TransferFunction2DEditor tfEditor2D;
-    private final int delta = 1;    
-    private final int numThreads = 10; // 10 works well for me, but probably depends on cpu
-    Thread[] threads = new Thread[numThreads];
+    TransferFunction2DEditor tfEditor2D;    
+    
+    private String raycaster;                   // String that determines which raycasting method will be used
+    private boolean phong = false;              // Enables / disables phong shading
+    private final int delta = 1;                // Interval at which the raycaster scans points
+    private final int numThreads = 10;          // Number of threads used by raycaster, 10 works well for me but probably depends on cpu
     
     public void setRenderType(String raycaster) {
         this.raycaster = raycaster;
@@ -153,12 +151,15 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     }
     
     private void startThreads() {
-        // 2 threads for interactiveMode, numThreads otherwise
-        int threadsUsed = this.interactiveMode ? 2 : this.numThreads;
+        // thread for interactiveMode, numThreads otherwise
+        int threadsUsed = this.interactiveMode ? 3 : this.numThreads;
         
         // Calculate number of rows per thread
         int height = image.getHeight();
         int rows = height / threadsUsed;
+            
+        // Create array of threads, such that we can wait for each thread to finish later on
+        Thread[] threads = new Thread[threadsUsed];
         
         // Create threads
         for (int i = 0; i < threadsUsed; i++) {           
@@ -179,6 +180,9 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                 threads[i] = new RaycasterGradient(startRow, endRow, delta, viewMatrix, image, phong, this.interactiveMode, volume, gradients, tfEditor2D);               
             } else if (this.raycaster.equals("composite")) {
                 threads[i] = new RaycasterComposite(startRow, endRow, delta, viewMatrix, image, phong, this.interactiveMode, volume, tFunc);
+            } else {
+                // If this.raycaster somehow is not one of the above, throw an exception since this should never happen
+                throw new IllegalStateException("Unknown raycaster: " + this.raycaster);
             }
             threads[i].start();
         }
@@ -187,8 +191,8 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         for (Thread thread : threads) {
             try {
                 thread.join();
-            } catch (InterruptedException ex) {
-                Logger.getLogger(RaycastRenderer.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (InterruptedException e) {
+                System.err.println(e.getMessage());
             }
         }           
     }
@@ -206,7 +210,12 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
 
         long startTime = System.currentTimeMillis();
         
-        startThreads();        
+        try {
+            startThreads();        
+        } catch (IllegalStateException e) {
+            System.err.println(e.getMessage());
+            return;
+        }
         
         long endTime = System.currentTimeMillis();
         double runningTime = (endTime - startTime);

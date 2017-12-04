@@ -48,9 +48,22 @@ public class TransferFunction2DView extends javax.swing.JPanel {
         Graphics2D g2 = (Graphics2D) g;
 
         int w = this.getWidth();
-        int h = this.getHeight();
-        g2.setColor(Color.white);
-        g2.fillRect(0, 0, w, h);
+        int h = this.getHeight();  
+           
+        double temp = h / ed.maxGradientMagnitude;
+        int lh = (int) (h - ed.triangleWidget.lowerMag * temp);
+        int uh = (int) (h - ed.triangleWidget.upperMag * temp);
+        
+        // Fill everything above upperMag with red
+        g2.setColor(Color.red);     
+        g2.fillRect(0, 0, w, uh);
+        
+        // Fill everything below lowerMag with red
+        g2.fillRect(0, lh, w, h);
+        
+        // Fill everything between lowerMag and upperMag with green
+        g2.setColor(Color.green);
+        g2.fillRect(0, uh, w, lh - uh);
         
         maxHistoMagnitude = ed.histogram[0];
         for (int i = 0; i < ed.histogram.length; i++) {

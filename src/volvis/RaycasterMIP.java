@@ -20,7 +20,8 @@ public class RaycasterMIP extends Raycaster {
         init();
         for (int j = this.startRow; j <= this.endRow - step; j+=step) {
             for (int i = 0; i <= image.getWidth() - step; i+=step) {
-                int maxVal = 0;
+                // Initialize maxVal to 0
+                int maxVal = 0; // Keeps track of the maximum value along the ray
                 for (int k = -imageCenter / renderDelta; k < imageCenter / renderDelta; k++) {
                     pixelCoord[0] = uVec[0] * (i - imageCenter) + vVec[0] * (j - imageCenter)
                             + volumeCenter[0] + k * renderDelta * viewVec[0];
@@ -29,18 +30,24 @@ public class RaycasterMIP extends Raycaster {
                     pixelCoord[2] = uVec[2] * (i - imageCenter) + vVec[2] * (j - imageCenter)
                             + volumeCenter[2] + k * renderDelta * viewVec[2];                
                     
+                    // Calculate value at pixelCoord using interpolation
                     int val = TripleInterpolation(pixelCoord, false); 
+                    
+                    // Update maxVal if val is greater
                     if (val > maxVal){
                         maxVal = val;
                     }
                 }
 
+                // Get color corresponding to this value from transfer function
                 voxelColor = tFunc.getColor(maxVal);
                 
-                if (this.phong) {
+                // If phong shading is enabled, call phong function to obtain new color
+                if (this.phong && !this.lowRes) {
                     voxelColor = phong(pixelCoord, voxelColor);
                 }
                 
+                // Set pixel i,j to compositeColor in this.image
                 super.setPixel(i, j, voxelColor);
             }
         }

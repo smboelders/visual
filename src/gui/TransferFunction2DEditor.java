@@ -184,7 +184,7 @@ public class TransferFunction2DEditor extends javax.swing.JPanel {
         radiusLabel.setText("jTextField3");
         radiusLabel.setMinimumSize(new java.awt.Dimension(84, 28));
 
-        jLabel9.setText("Lower threshhold");
+        jLabel9.setText("Lower threshold");
 
         jLabel10.setText("Upper threshold");
 

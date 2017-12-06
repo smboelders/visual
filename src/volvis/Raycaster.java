@@ -95,6 +95,7 @@ public abstract class Raycaster extends Thread {
         voxelColor = new TFColor();     
     }
     
+    // Implements phong shading according to the formula in Levoy's paper
     protected TFColor phong(double[] coord, TFColor color) {    
         if (coord[0] < 1 || coord[0] >= volume.getDimX()-1 || coord[1] < 1 || coord[1] >= volume.getDimY()-1
                 || coord[2] < 1 || coord[2] >= volume.getDimZ()-1) {

@@ -162,9 +162,10 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         Thread[] threads = new Thread[threadsUsed];
         
         // Create threads
-        for (int i = 0; i < threadsUsed; i++) {           
-            int startRow = (int) (i * Math.floor(rows));
-            int endRow = i * rows + rows;
+        for (int i = 0; i < threadsUsed; i++) { 
+            int intRows = (int) Math.floor(rows);
+            int startRow = (i > 0) ? (int) i * intRows + 1 : (int) i * intRows;
+            int endRow = startRow + intRows;
             
             // Since we use Math.floor to round the number of rows, we have to set the last thread's endRow to height such that we render the full image
             if (i == threadsUsed - 1) {

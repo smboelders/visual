@@ -26,6 +26,7 @@ public abstract class Raycaster extends Thread {
     protected double[] volumeCenter;
     
     protected double max;
+    protected double diagonal;
     
     protected TFColor voxelColor;
 
@@ -85,6 +86,8 @@ public abstract class Raycaster extends Thread {
 
         // image is square
         imageCenter = image.getWidth() / 2;
+        
+        diagonal = volume.getSpaceDiagonalLength();
 
         pixelCoord = new double[3];
         volumeCenter = new double[3];

@@ -22,16 +22,23 @@ public class RaycasterMIP extends Raycaster {
             for (int i = 0; i <= image.getWidth() - step; i+=step) {
                 // Initialize maxVal to 0
                 int maxVal = 0; // Keeps track of the maximum value along the ray
-                for (int k = -imageCenter; k <= imageCenter - renderDelta; k += renderDelta) {
+                for (double k = -diagonal/2; k <= diagonal/2 - renderDelta; k += renderDelta) {
                     pixelCoord[0] = uVec[0] * (i - imageCenter) + vVec[0] * (j - imageCenter)
                             + volumeCenter[0] + k * viewVec[0];
                     pixelCoord[1] = uVec[1] * (i - imageCenter) + vVec[1] * (j - imageCenter)
                             + volumeCenter[1] + k * viewVec[1];
                     pixelCoord[2] = uVec[2] * (i - imageCenter) + vVec[2] * (j - imageCenter)
-                            + volumeCenter[2] + k * viewVec[2];                
+                            + volumeCenter[2] + k * viewVec[2];         
+                    
+                    // Ignore values outside volume
+                    if (pixelCoord[0] < 0 || pixelCoord[0] >= volume.getDimX() || pixelCoord[1] < 0 || pixelCoord[1] >= volume.getDimY()
+                        || pixelCoord[2] < 0 || pixelCoord[2] >= volume.getDimZ()) {
+                        // Skip rest, go to next iteration
+                        continue;
+                    }
                     
                     // Calculate value at pixelCoord using interpolation
-                    int val = TripleInterpolation(pixelCoord, false); 
+                    int val = TripleInterpolation(pixelCoord, false);                     
                     
                     // Update maxVal if val is greater
                     if (val > maxVal){

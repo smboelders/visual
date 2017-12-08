@@ -91,6 +91,14 @@ public class Volume {
         }
     }
     
+    /* Calculates length of space diagonal
+     * See: https://en.wikipedia.org/wiki/Space_diagonal
+     * Is the maximum length of ray through volume
+     */
+    public double getSpaceDiagonalLength() {
+        return Math.sqrt(Math.pow(dimX, 2) + Math.pow(dimY, 2) + Math.pow(dimZ, 2));
+    }
+    
     private int dimX, dimY, dimZ;
     private short[] data;
     private int[] histogram;

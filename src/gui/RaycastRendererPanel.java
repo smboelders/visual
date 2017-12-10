@@ -4,12 +4,7 @@
  */
 package gui;
 
-import javax.swing.JOptionPane;
 import volvis.RaycastRenderer;
-import volvis.RaycasterComposite;
-import volvis.RaycasterGradient;
-import volvis.RaycasterMIP;
-import volvis.RaycasterSlicer;
 
 /**
  *
@@ -27,7 +22,7 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
     public RaycastRendererPanel(RaycastRenderer renderer) {
         initComponents();
         this.renderer = renderer;
-        this.renderer.setRenderType("slicer");
+        this.renderer.setRenderType("slicer"); //use slicer initially
     }
 
     public void setSpeedLabel(String text) {

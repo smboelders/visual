@@ -23,8 +23,8 @@ public class RaycasterGradient extends Raycaster {
         init();
         
         // Get parameters from triangleWidget
-        double baseIntensity = this.tfEditor2D.triangleWidget.baseIntensity;
         double radius = this.tfEditor2D.triangleWidget.radius;
+        double baseIntensity = this.tfEditor2D.triangleWidget.baseIntensity;
         TFColor color = this.tfEditor2D.triangleWidget.color;    
         double lowerMag = this.tfEditor2D.triangleWidget.lowerMag;
         double upperMag = this.tfEditor2D.triangleWidget.upperMag;
@@ -62,9 +62,9 @@ public class RaycasterGradient extends Raycaster {
                      * While additionality checking whether the magnitude lies within the
                      * allowed range of magnitudes, defined by the extended triangle widget
                      */
-                    if (mag == 0 && val == baseIntensity) {
+                    if (val == baseIntensity && mag == 0) {
                         voxelColor.a = 1;
-                    } else if (mag >= lowerMag && mag <= upperMag && mag > 0 && (val - radius * Math.abs(mag) <= baseIntensity && baseIntensity <= val + radius * Math.abs(mag))) {
+                    } else if (mag > 0 && (val - radius * Math.abs(mag) <= baseIntensity && baseIntensity <= val + radius * Math.abs(mag)) && mag >= lowerMag && mag <= upperMag) {
                         double temp = (baseIntensity - val) / Math.abs(mag);                     
                         voxelColor.a = 1 - ((1/radius) * Math.abs(temp));
                     } else {

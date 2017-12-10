@@ -22,7 +22,7 @@ public class RaycasterMIP extends Raycaster {
             for (int i = 0; i <= image.getWidth() - step; i+=step) {
                 // Initialize maxVal to 0
                 int maxVal = 0; // Keeps track of the maximum value along the ray
-                for (double k = -diagonal/2; k <= diagonal/2 - renderDelta; k += renderDelta) {
+                for (double k = -imageCenter; k <= imageCenter - renderDelta; k += renderDelta) {
                     pixelCoord[0] = uVec[0] * (i - imageCenter) + vVec[0] * (j - imageCenter)
                             + volumeCenter[0] + k * viewVec[0];
                     pixelCoord[1] = uVec[1] * (i - imageCenter) + vVec[1] * (j - imageCenter)

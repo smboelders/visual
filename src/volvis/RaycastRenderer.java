@@ -151,26 +151,23 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     }
     
     private void startThreads() {
-        // thread for interactiveMode, numThreads otherwise
-        int threadsUsed = this.interactiveMode ? 3 : this.numThreads;
+        // 3 threads for interactiveMode, numThreads otherwise
+        int numThreadsUsed = this.interactiveMode ? 3 : this.numThreads;
         
         // Calculate number of rows per thread
         int height = image.getHeight();
-        int rows = height / threadsUsed;
+        int rows = height / numThreadsUsed;
             
         // Create array of threads, such that we can wait for each thread to finish later on
-        Thread[] threads = new Thread[threadsUsed];
+        Thread[] threads = new Thread[numThreadsUsed];
         
         // Create threads
-        for (int i = 0; i < threadsUsed; i++) { 
+        for (int i = 0; i < numThreadsUsed; i++) { 
             int intRows = (int) Math.floor(rows);
-            int startRow = (i > 0) ? (int) i * intRows + 1 : (int) i * intRows;
-            int endRow = startRow + intRows;
             
-            // Since we use Math.floor to round the number of rows, we have to set the last thread's endRow to height such that we render the full image
-            if (i == threadsUsed - 1) {
-                endRow = height;
-            }
+            // Calculate start and end row for current thread
+            int startRow = (int) i * intRows;
+            int endRow = (i == numThreadsUsed - 1) ? startRow + intRows : height;   // Set endRow to height for last thread since we used Math.floor
 
             // Start thread based on value in this.raycaster
             if (this.raycaster.equals("slicer")) {

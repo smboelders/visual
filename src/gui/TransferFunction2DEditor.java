@@ -86,9 +86,9 @@ public class TransferFunction2DEditor extends javax.swing.JPanel {
     public void setSelectedInfo() {
         intensityLabel.setText(Integer.toString(triangleWidget.baseIntensity));
         radiusLabel.setText(String.format("%.3f", triangleWidget.radius));
-        tfLowerMag.setText(String.format("%.3f", triangleWidget.lowerMag));
-        tfUpperMag.setText(String.format("%.3f", triangleWidget.upperMag));
         opacityLabel.setText(String.format("%.1f", triangleWidget.color.a));
+        tfLowerMag.setText(String.format("%.1f", triangleWidget.lowerMag));
+        tfUpperMag.setText(String.format("%.1f", triangleWidget.upperMag));
         colorButton.setBackground(new Color((float) triangleWidget.color.r, (float) triangleWidget.color.g, (float) triangleWidget.color.b));
     }
 
@@ -330,7 +330,10 @@ public class TransferFunction2DEditor extends javax.swing.JPanel {
                 value = 0;
             } 
             if (value > triangleWidget.upperMag) {
-                value = triangleWidget.upperMag;                
+                if (value > maxGradientMagnitude) {
+                    value = maxGradientMagnitude;
+                }
+                triangleWidget.upperMag = value;             
             }
             triangleWidget.lowerMag = value;
         } catch (NumberFormatException e) {
@@ -349,12 +352,15 @@ public class TransferFunction2DEditor extends javax.swing.JPanel {
                 value = maxGradientMagnitude;
             } 
             if (value < triangleWidget.lowerMag) {
-                value = triangleWidget.lowerMag;                
+                if (value < 0) {
+                    value = 0;
+                }
+                triangleWidget.lowerMag = value;                
             }
             triangleWidget.upperMag = value;
         } catch (NumberFormatException e) {
             // Default to max gradient
-            triangleWidget.lowerMag = maxGradientMagnitude;
+            triangleWidget.upperMag = maxGradientMagnitude;
         }        
         tfView.repaint();
         setSelectedInfo();

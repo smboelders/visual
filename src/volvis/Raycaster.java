@@ -99,7 +99,9 @@ public abstract class Raycaster extends Thread {
     }
     
     // Implements phong shading according to the formula in Levoy's paper
-    protected TFColor phong(double[] coord, TFColor color) {    
+    protected TFColor phong(double[] coord, TFColor color) { 
+        
+        // Check if coord within bounds
         if (coord[0] < 1 || coord[0] >= volume.getDimX()-1 || coord[1] < 1 || coord[1] >= volume.getDimY()-1
                 || coord[2] < 1 || coord[2] >= volume.getDimZ()-1) {
             return color;
@@ -126,7 +128,6 @@ public abstract class Raycaster extends Thread {
         double l_l_b = color.b / k1k2d;       
         
         // Get normalized local gradient vector        
-        // Not sure using math.floor is the correct way of doing this ...
         int x = (int) Math.floor(coord[0]);
         int y = (int) Math.floor(coord[1]);
         int z = (int) Math.floor(coord[2]);
@@ -139,7 +140,7 @@ public abstract class Raycaster extends Thread {
         // Calculate normalized gradient vector
         double[] N = VectorMath.normalize(s);
         
-        // Since all vectors have viewpoint as origin, L is simply opposite of coord (right ...?)
+        // L is vector to viewpoint (?)
         double[] L = {-1*viewVec[0], -1*viewVec[1], -1*viewVec[2]};
                 
         // Calculate L dotproduct N
@@ -216,8 +217,8 @@ public abstract class Raycaster extends Thread {
             Sx7 = gradients.getGradient(xCeil, yCeil, zCeil).mag;
         }
         
-        double alpha = (x - Math.floor(x)) / (Math.ceil(x) - Math.floor(x)); // (x - x0) / (x1 - x0)
-        double beta = (y - Math.floor(y)) / (Math.ceil(y) - Math.floor(y));
+        double alpha = (x - Math.floor(x)) / (Math.ceil(x) - Math.floor(x));
+        double beta = (y - Math.floor(y)) / (Math.ceil(y) - Math.floor(y)); 
         double gamma = (z - Math.floor(z)) / (Math.ceil(z) - Math.floor(z));
         
         double Sx = (1 - alpha) * (1 - beta) * (1 - gamma) * Sx0;
@@ -241,7 +242,7 @@ public abstract class Raycaster extends Thread {
         int c_blue = color.b <= 1.0 ? (int) Math.floor(color.b * 255) : 255;
         int pixelColor = (c_alpha << 24) | (c_red << 16) | (c_green << 8) | c_blue;
         
-        // If low res is enabled, set multiple pixels to color
+        // If low res is enabled, set multiple pixels to same color
         if (this.lowRes) {
             for (int a = 0; a < step; a++) {
                 for (int b = 0; b < step; b++) {
